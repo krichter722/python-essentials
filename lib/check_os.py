@@ -65,7 +65,7 @@ def check_debian():
 
 def check_linuxmint():
     try:
-        lsb_release_id_short = sp.check_output(["lsb_release", "-d", "s"]).strip().decode("utf-8")
+        lsb_release_id_short = sp.check_output(["lsb_release", "-d", "-s"]).strip().decode("utf-8")
         ret_value = "Linux Mint" in lsb_release_id_short
         return ret_value
     except Exception:
