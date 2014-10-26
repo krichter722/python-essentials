@@ -32,6 +32,9 @@ import re
 import os
 import sys
 
+# binaries
+lsb_release = "lsb_release"
+
 def check_linux():
     if not check_python3():
         ret_value = sys.platform == "linux2"
@@ -42,14 +45,14 @@ def check_linux():
 
 def check_opensuse():
     try:
-        lsb_release_id_short = sp.check_output(["lsb_release", "-d", "-s"])
+        lsb_release_id_short = sp.check_output([lsb_release, "-d", "-s"])
         return "openSUSE" in lsb_release_id_short
     except Exception:
         return False
 
 def check_ubuntu():
     try:
-        lsb_release_id_short = sp.check_output(["lsb_release", "-d", "-s"]).strip().decode("utf-8")
+        lsb_release_id_short = sp.check_output([lsb_release, "-d", "-s"]).strip().decode("utf-8")
         ret_value = "Ubuntu" in lsb_release_id_short
         return ret_value
     except Exception:
@@ -57,7 +60,7 @@ def check_ubuntu():
 
 def check_debian():
     try:
-        lsb_release_id_short = sp.check_output(["lsb_release", "-d", "-s"]).strip().decode("utf-8")
+        lsb_release_id_short = sp.check_output([lsb_release, "-d", "-s"]).strip().decode("utf-8")
         ret_value = "Debian" in lsb_release_id_short
         return ret_value
     except Exception:
@@ -65,7 +68,7 @@ def check_debian():
 
 def check_linuxmint():
     try:
-        lsb_release_id_short = sp.check_output(["lsb_release", "-d", "-s"]).strip().decode("utf-8")
+        lsb_release_id_short = sp.check_output([lsb_release, "-d", "-s"]).strip().decode("utf-8")
         ret_value = "Linux Mint" in lsb_release_id_short
         return ret_value
     except Exception:
@@ -98,7 +101,7 @@ def findout_release_ubuntu():
     while not os.path.isfile("/usr/bin/python2.6") and not os.path.isfile("/usr/bin/python2.7"):
         print("Neither python2.6 nor python 2.7 could be found in /usr/bin/. It's necessary to determine your distribution release")
         confirm("proceed","Install python 2.6 or 2.7 and make it available at /usr/bin/python2.6 or /usr/lib/python2.7")
-    release= sp.check_output(["lsb_release","-cs"]).strip().decode("utf-8")
+    release= sp.check_output([lsb_release,"-cs"]).strip().decode("utf-8")
     return release
 
 def findout_release_debian():
@@ -109,7 +112,12 @@ def findout_release_ubuntu_tuple():
     while not os.path.isfile("/usr/bin/python2.6") and not os.path.isfile("/usr/bin/python2.7"):
         print("Neither python2.6 nor python 2.7 could be found in /usr/bin/. It's necessary to determine your distribution release")
         confirm("proceed","Install python 2.6 or 2.7 and make it available at /usr/bin/python2.6 or /usr/lib/python2.7")
-    release_number = sp.check_output(["lsb_release", "-rs"]).strip().decode("utf-8")
+    release_number = sp.check_output([lsb_release, "-rs"]).strip().decode("utf-8")
     release_tuple = tuple([int(x) for x in release_number.split(".")])
     return release_tuple
+
+# linuxmint release identifiers are natural numbers
+def findout_release_linuxmint():
+    ret_value = sp.check_output([lsb_release, "-r", "-s"]).decode("uft-8").strip()
+    return int(ret_value)
 
