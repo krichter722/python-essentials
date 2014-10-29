@@ -189,24 +189,40 @@ def aptupdate(force=False):
             raise ex       
         aptuptodate = True
 
+################################################################################
+# apt source entries                                                           #
+################################################################################
+valid_source_line_types = ["deb", "deb-src"]
+
+def __validate_apt_source_function_params_augeas_root__(augeas_root, sources_dir_path, sources_file_path):
+    if augeas_root is None:
+        raise ValueError("augeas_root mustn't be None")
+    if not os.path.exists(augeas_root):
+        raise ValueError("augeas_root '%s' doesn't exist" % (augeas_root,))
+    if not os.path.isdir(augeas_root):
+        raise ValueError("augeas_root '%s' isn't a directory, but has to be" % 
+(augeas_root))
+    if not os.path.exists(sources_dir_path):
+        raise ValueError("sources_dir_path '%s' doesn't exist" % 
+(sources_dir_path,))
+    if not os.path.exists(sources_file_path):
+        raise ValueError("sources_file_path '%s' doesn't exist" % 
+(sources_file_path,))
+
+def __validate_apt_source_function_params_type__(the_type):
+    if not the_type in valid_source_line_types:
+        raise ValueError("the_type '%s' isn't a valid source line type (has to be one of %s)" % (the_type, valid_source_line_types))
+
 # Avoids the weakness of <tt>add-apt-repository</tt> command to add commented duplicates of lines which are already present by not adding those at all.
 # @args uri the URI of the apt line
 # @args component the component to be served (e.g. main)
 # @args distribution the distribution of the entry (e.g. trusty for an Ubuntu 14.04 system)
 # @args the_type the type of the entry (usually <tt>deb</tt> or <tt>deb-src</tt>)
 def check_apt_source_line_added(uri, component, distribution, the_type, augeas_root="/",):
-    if augeas_root is None:
-        raise ValueError("augeas_root mustn't be None")
-    if not os.path.exists(augeas_root):
-        raise ValueError("augeas_root '%s' doesn't exist" % (augeas_root,))
-    if not os.path.isdir(augeas_root):
-        raise ValueError("augeas_root '%s' isn't a directory, but has to be" % (augeas_root))
     sources_dir_path= os.path.join(augeas_root, "etc/apt/sources.list.d")
     sources_file_path= os.path.join(augeas_root, "etc/apt/sources.list")
-    if not os.path.exists(sources_dir_path):
-        raise ValueError("sources_dir_path '%s' doesn't exist" % (sources_dir_path,))
-    if not os.path.exists(sources_file_path):
-        raise ValueError("sources_file_path '%s' doesn't exist" % (sources_file_path,))
+    __validate_apt_source_function_params_augeas_root__(augeas_root, sources_dir_path, sources_file_path)
+    __validate_apt_source_function_params_type__(the_type)
     
     a = augeas.Augeas(root=augeas_root)
     # workaround missing loop label feature with inner function
@@ -227,6 +243,30 @@ def check_apt_source_line_added(uri, component, distribution, the_type, augeas_r
         match_found = False
         for commented_in_line in commented_in_lines:
             if a.get("%s/uri" % (commented_in_line,)) == uri and a.get("%s/component" % (commented_in_line,)) == component and a.get("%s/distribution" % (commented_in_line,)) == distribution and a.get("%s/type" % (commented_in_line,)) == the_type:
+                a.close()
                 return True
+    a.close()
     return False
 
+# adds an entry based on <tt>uri</tt>, <tt>component</tt>, 
+# <tt>distribution</tt> and <tt>the_type</tt> to <tt>etc/apt/sources.list</tt> 
+# relatively to <tt>augeas_root</tt>.
+# 
+# Consider using add-apt-repository or manually adding an entry in a separate 
+# file into <tt>/etc/apt/sources.d/</tt>.
+# 
+# There's no validation of parameters except <tt>augeas_root</tt>, i.e. this 
+# might mess up your <tt>sources.list</tt> file quite easily.
+def add_apt_source_line(uri, component, distribution, the_type, augeas_root="/",):
+    sources_dir_path= os.path.join(augeas_root, "etc/apt/sources.list.d")
+    sources_file_path= os.path.join(augeas_root, "etc/apt/sources.list")
+    __validate_apt_source_function_params_augeas_root__(augeas_root, sources_dir_path, sources_file_path)
+    __validate_apt_source_function_params_type__(the_type)
+    
+    a = augeas.Augeas(root=augeas_root)
+    a.set("/files/etc/apt/sources.list/01/distribution", distribution) # checkout http://augeas.net/tour.html if you find the 01 label for adding entries confusing (it simply is...)
+    a.set("/files/etc/apt/sources.list/01/type", the_type)
+    a.set("/files/etc/apt/sources.list/01/uri", uri)
+    a.set("/files/etc/apt/sources.list/01/component", component)
+    a.save()
+    a.close()
