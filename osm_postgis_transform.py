@@ -78,7 +78,7 @@ db_user_default = "postgis"
 db_password_default = "postgis"
 db_name_default = "postgis"
 osm2pgsql_default = "osm2pgsql"
-data_dir_default = "/mnt/osm_postgis/postgis-%s" % pg_version_string
+data_dir_default = os.path.join(os.environ["HOME"], "osm_postgis/postgis-%s" % pg_version_string)
 cache_size_default=1000
 
 # the time the scripts (main thread) waits for the postgres server to be available and accepting connections (in seconds)
@@ -102,6 +102,7 @@ def a_list(arg):
     osm2pgsql=("optional path to a osm2pgsql binary", "option"), 
 )
 def osm_postgis_transform(osm_files, skip_start_db, data_dir=data_dir_default, db_host=db_host_default, db_port=db_port_default, db_user=db_user_default, db_password=db_password_default, db_name=db_name_default, cache_size=cache_size_default, osm2pgsql=osm2pgsql_default):
+    # the text for the help transformed by plac:
     """
     This script sets up PostGIS database with data from an OSM (.osm) file. It 
     is essentially a wrapper around `osm2pgsql`. By default it will either spawn a database process based on the data directory speified with the `--data-dir` argument (if the data directory is non-empty) or create a database data directory and spawn a database process based on that newly created data directory and feed data to it. If the nested database process can't be connected to with the default value for database connection parameters, they have to be overwritten, otherwise the script will fail with the error message of the `postgres` process.
@@ -168,3 +169,4 @@ def osm_postgis_transform(osm_files, skip_start_db, data_dir=data_dir_default, d
 
 if __name__ == "__main__":
     plac.call(osm_postgis_transform)
+
