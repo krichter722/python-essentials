@@ -27,16 +27,26 @@
 #    Sie sollten eine Kopie der GNU General Public License zusammen mit diesem
 #    Programm erhalten haben. Wenn nicht, siehe <http://www.gnu.org/licenses/>.
 
+# python-provided dependencies
 import sys
 import os
+import subprocess as sp
+import string
 sys.path.append(os.path.realpath(os.path.join(__file__, "..", 'lib')))
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+logger.addHandler(ch)
 
+# project internal dependencies
 import pm_utils
 import check_os
 import postgis_utils
 import os_utils
-import subprocess as sp
-import string
+
+# external dependencies
 import plac
 
 postgis_src_dir_name="postgis-2.1.1"
@@ -76,6 +86,10 @@ def install_postgresql(skip_apt_update, pg_version=(9,2),):
                     release = check_os.findout_release_ubuntu()
             elif check_os.check_debian():
                 release = check_os.findout_release_debian()
+            elif check_os.check_linuxmint():
+                release = check_os.findout_release_linuxmint()
+                if release < 17:
+                    raise RuntimeError("linuxmint releases < 17 aren't supported")
             else:
                 raise RuntimeError("operating system not supported")
             apt_url = "http://apt.postgresql.org/pub/repos/apt/"
@@ -90,11 +104,6 @@ def install_postgresql(skip_apt_update, pg_version=(9,2),):
                 postgresql_sources_file.close()
                 os.system("wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -")
                 pm_utils.invalidate_apt()
-        else:
-            # linuxmint
-            release = check_os.findout_release_linuxmint()
-            if release < 17:
-                raise RuntimeError("linuxmint releases < 17 aren't supported")
         pg_version_string = string.join([str(x) for x in pg_version],".")
         try:
             pm_utils.install_packages([ 
@@ -105,7 +114,7 @@ def install_postgresql(skip_apt_update, pg_version=(9,2),):
                 "postgresql-client-common", # version independent, no package per version
             ], package_manager="apt-get", skip_apt_update=skip_apt_update)
         except sp.CalledProcessError as ex:
-            print("postgresql installation failed (which might be caused by breakage of apt package in Ubuntu 13.10")
+            logger.info("postgresql installation failed (which MIGHT be caused by breakage of apt package in Ubuntu 13.10")
             #pm_utils.remove_packages(["postgresql", "postgresql-common"], package_manager="apt-get", skip_apt_update=skip_apt_update) 
             #postgresql_deb_path = os.path.join(tmp_dir, postgresql_deb_name)
             #if not check_file(postgresql_deb_path, postgresql_deb_md5):
@@ -133,4 +142,3 @@ def install_postgresql(skip_apt_update, pg_version=(9,2),):
 
 if __name__ == "__main__":
     plac.call(install_prequisites)
-
