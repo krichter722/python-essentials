@@ -29,6 +29,8 @@
 
 import sys
 import os
+sys.path.append(os.path.realpath(os.path.join(__file__, "..", 'lib')))
+
 import pm_utils
 import check_os
 import postgis_utils
