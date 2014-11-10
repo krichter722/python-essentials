@@ -52,6 +52,7 @@ import pm_utils
 import check_os
 import postgis_utils
 import os_utils
+import python_essentials
 
 # external dependencies
 try:
@@ -60,7 +61,7 @@ try:
 except ImportError as ex:
     logger.error("import of one of the modules %s failed. Did you run the osm_postgis_transform_prequisites.py scripts?" % ["pexpect", "plac"])
 
-pg_version = (9,2)
+pg_version = (9,2) # @TODO: read from config file (but keep programmatic default version (maybe share in module))
 pg_version_string = str.join(".", [str(i) for i in pg_version])
 postgis_version = (2,0)
 postgis_version_string = str.join(".", [str(i) for i in postgis_version])
@@ -78,7 +79,9 @@ db_user_default = "postgis"
 db_password_default = "postgis"
 db_name_default = "postgis"
 osm2pgsql_default = "osm2pgsql"
-data_dir_default = os.path.join(os.environ["HOME"], "osm_postgis/postgis-%s" % pg_version_string)
+
+#config = python_essentials.create_config_parser(os.path.join(os.path.realpath(__file__), ".."))
+data_dir_default = os.path.join(os.environ["HOME"], "osm_postgis_db-9.2") #config.get('pathes', 'osm_postgis_dir_path', )
 cache_size_default=1000
 
 # the time the scripts (main thread) waits for the postgres server to be available and accepting connections (in seconds)
