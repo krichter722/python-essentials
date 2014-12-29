@@ -32,6 +32,18 @@ import re
 import os
 import sys
 
+# constants
+ARCHITECTURE_X86_64 = "x86_64"
+ARCHITECTURE_I386 = "i386"
+ARCHITECTURE_I686 = "i686"
+INSTRUCTION_SET_AMD64 = "amd64"
+INSTRUCTION_SET_I386 = "i386"
+ARCHITECTURE_INSTRUCTION_SET_DICT = {
+    ARCHITECTURE_X86_64: INSTRUCTION_SET_AMD64,
+    ARCHITECTURE_I386: INSTRUCTION_SET_I386,
+    ARCHITECTURE_I686: INSTRUCTION_SET_I386,
+}
+
 # binaries
 lsb_release = "lsb_release"
 
@@ -88,16 +100,13 @@ def findout_architecture():
     architecture = sp.check_output(["uname","-m"]).strip()
     return architecture
 
+def findout_instruction_set():
+    architecture = findout_architecture()
+    instruction_set = ARCHITECTURE_INSTRUCTION_SET_DICT[architecture]
+    return instruction_set
+
 #lsb_release only works with python2.x
 def findout_release_ubuntu():
-#    python2=None
-#    if os.path.isfile("/usr/bin/python2.6"):
-#        python2="/usr/bin/python2.6"
-#    elif os.path.isfile("/usr/bin/python2.7"):
-#        python2="/usr/bin/python2.7"
-#    else:
-#        print("Neither python2.6 nor python 2.7 could be found in /usr/bin/. It's necessary to determine your distribution release")
-#        exit(5)
     while not os.path.isfile("/usr/bin/python2.6") and not os.path.isfile("/usr/bin/python2.7"):
         print("Neither python2.6 nor python 2.7 could be found in /usr/bin/. It's necessary to determine your distribution release")
         confirm("proceed","Install python 2.6 or 2.7 and make it available at /usr/bin/python2.6 or /usr/lib/python2.7")

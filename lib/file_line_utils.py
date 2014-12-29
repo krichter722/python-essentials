@@ -1,12 +1,34 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- 
 
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Dieses Programm ist Freie Software: Sie können es unter den Bedingungen
+#    der GNU General Public License, wie von der Free Software Foundation,
+#    Version 3 der Lizenz oder (nach Ihrer Wahl) jeder neueren
+#    veröffentlichten Version, weiterverbreiten und/oder modifizieren.
+#
+#    Dieses Programm wird in der Hoffnung, dass es nützlich sein wird, aber
+#    OHNE JEDE GEWÄHRLEISTUNG, bereitgestellt; sogar ohne die implizite
+#    Gewährleistung der MARKTFÄHIGKEIT oder EIGNUNG FÜR EINEN BESTIMMTEN ZWECK.
+#    Siehe die GNU General Public License für weitere Details.
+#
+#    Sie sollten eine Kopie der GNU General Public License zusammen mit diesem
+#    Programm erhalten haben. Wenn nicht, siehe <http://www.gnu.org/licenses/>.
+
 import re
 import os
-
-##############################
-# line tools
-##############################
 
 # searches for lines which match <tt>old_line_re</tt> and replace every occurance with <tt>new_line</tt> and writes the changes back to the file. If no lines match, nothing happens effectively
 def file_replace_line(file_path, old_line_re, new_line):
@@ -61,6 +83,8 @@ def file_lines(file_, comment_symbol="#"):
 def filter_output_lines(lines, comment_symbol="#"):
     if comment_symbol == "":
         raise ValueError("comment_symbol mustn't be the empty string ''")
+    if str(type(lines)) != "<type 'list'>" and str(type(lines)) != "<class 'list'>":
+        raise ValueError("lines %s isn't a list" % (lines,))
     ret_value = []
     for i in lines:
         i = i.strip()
@@ -115,33 +139,35 @@ def output_lines_match(lines, pattern, comment_symbol="#"):
 
 # @args line the line to be commented out (can be a regular expression or a literal) (leading and trailing whitespace in lines in the file will be ignored)
 # @args comment_symbol can be <code>None</code> in order to include all lines, must not be the empty string '' (<tt>ValueError</tt> will be raised)
-def comment_out(file0, line, comment_symbol):
+def comment_out(file_path, line, comment_symbol):
     if comment_symbol == "":
         raise ValueError("comment_symbol mustn't be the empty string ''")
     new_lines = []
-    file_lines0 = file_lines(file0, comment_symbol=None)
+    file_lines0 = file_lines(file_path, comment_symbol=None)
     for file_line in file_lines0:
         if not re.match("[\\s]*%s[\\s]*" % line):
             new_lines.append(file_line)
         else:
             new_lines.append("%s %s" % (comment_symbol, line))
-    file_obj = open(file0, "rw+")
+    file_obj = open(file_path, "rw+")
     for new_line in new_lines:
         file_obj.write("%s\n" % new_line)
+    file_obj.flush()
     file_obj.close()
     
 # @args line the line to be commented in (can be a regular expression or a literal)
-def comment_in(file0, line, comment_symbol):
+def comment_in(file_path, line, comment_symbol):
     new_lines = []
-    file_lines0 = file_lines(file0, comment_symbol=None)
+    file_lines0 = file_lines(file_path, comment_symbol=None)
     for file_line in file_lines0:
         if not re.match("[\\s]*%s[\\s]*%s" % (comment_symbol, line), line):
             new_lines.append(file_line)
         else:
             new_lines.append(re.search(line, file_line).group(0))
-    file_obj = open(file0, "rw+")
+    file_obj = open(file_path, "w")
     for new_line in new_lines:
         file_obj.write("%s\n" % new_line)
+    file_obj.flush()
     file_obj.close()
 
 def create_file_wrapper(path):
