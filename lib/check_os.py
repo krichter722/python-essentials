@@ -127,6 +127,6 @@ def findout_release_ubuntu_tuple():
 
 # linuxmint release identifiers are natural numbers
 def findout_release_linuxmint():
-    ret_value = sp.check_output([lsb_release, "-r", "-s"]).decode("uft-8").strip()
+    ret_value = sp.check_output([lsb_release, "-r", "-s"]).decode("utf-8").strip()
     return int(ret_value)
 

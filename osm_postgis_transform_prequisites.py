@@ -27,14 +27,26 @@
 #    Sie sollten eine Kopie der GNU General Public License zusammen mit diesem
 #    Programm erhalten haben. Wenn nicht, siehe <http://www.gnu.org/licenses/>.
 
+# python-provided dependencies
 import sys
 import os
+import subprocess as sp
+import string
+sys.path.append(os.path.realpath(os.path.join(__file__, "..", 'lib')))
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+logger.addHandler(ch)
+
+# project internal dependencies
 import pm_utils
 import check_os
 import postgis_utils
 import os_utils
-import subprocess as sp
-import string
+
+# external dependencies
 import plac
 
 postgis_src_dir_name="postgis-2.1.1"
@@ -62,27 +74,36 @@ def install_prequisites(skip_database_installation, skip_apt_update, postgis_url
             install_postgresql(skip_apt_update=skip_apt_update)
 
 def install_postgresql(skip_apt_update, pg_version=(9,2),):
-    if check_os.check_ubuntu() or check_os.check_debian():
-        if check_os.check_ubuntu():            
-            release_tuple = check_os.findout_release_ubuntu_tuple()
-            if release_tuple > (12,4) and release_tuple < (13,10):
-                release = "precise" # repository provides for precise, saucy and trusty
+    if check_os.check_ubuntu() or check_os.check_debian() or check_os.check_linuxmint():
+        # only add apt source for ubuntu and debian and fail in linuxmint if 
+        # release is < 17 where the packages are available
+        if check_os.check_ubuntu() or check_os.check_debian():
+            if check_os.check_ubuntu():   
+                release_tuple = check_os.findout_release_ubuntu_tuple()
+                if release_tuple > (12,4) and release_tuple < (13,10):
+                    release = "precise" # repository provides for precise, saucy and trusty
+                else:
+                    release = check_os.findout_release_ubuntu()
+            elif check_os.check_debian():
+                release = check_os.findout_release_debian()
+            elif check_os.check_linuxmint():
+                release = check_os.findout_release_linuxmint()
+                if release < 17:
+                    raise RuntimeError("linuxmint releases < 17 aren't supported")
             else:
-                release = check_os.findout_release_ubuntu()
-        elif check_os.check_debian():
-            release = check_os.findout_release_debian()
-        else:
-            raise RuntimeError("operating system not supported")
-        apt_url = "http://apt.postgresql.org/pub/repos/apt/"
-        release_spec = "%s-pgdg" % release
-        identifier = "main"
-        deb_line_re = pm_utils.generate_deb_line_re(apt_url, release_spec, identifier)
-        ppa_sources_d_file = None
-        ppa_spec = "deb %s %s %s" % (apt_url, release_spec, identifier)
-        apt_line_added = pm_utils.lazy_add_apt_source_line(deb_line_re, ppa_sources_d_file, ppa_spec)
-        if apt_line_added:
-            os.system("wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -")
-            pm_utils.invalidate_apt() 
+                raise RuntimeError("operating system not supported")
+            apt_url = "http://apt.postgresql.org/pub/repos/apt/"
+            distribution = "%s-pgdg" % release
+            component = "main"
+            if not pm_utils.check_apt_source_line_added(uri=apt_url, component=component, distribution=distribution, the_type="deb", augeas_root="/",):
+                postgresql_sources_file_path = "/etc/apt/sources.list.d/postgresql.list"
+                logger.info("adding postgresql apt source file '%s'" % (postgresql_sources_file_path,))
+                postgresql_sources_file = open(postgresql_sources_file_path, "w")
+                postgresql_sources_file.write("deb %s %s %s" % (apt_url, distribution, component, ))
+                postgresql_sources_file.flush()
+                postgresql_sources_file.close()
+                os.system("wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -")
+                pm_utils.invalidate_apt()
         pg_version_string = string.join([str(x) for x in pg_version],".")
         try:
             pm_utils.install_packages([ 
@@ -93,7 +114,7 @@ def install_postgresql(skip_apt_update, pg_version=(9,2),):
                 "postgresql-client-common", # version independent, no package per version
             ], package_manager="apt-get", skip_apt_update=skip_apt_update)
         except sp.CalledProcessError as ex:
-            print("postgresql installation failed (which is possible due to broken package in Ubuntu 13.10")
+            logger.info("postgresql installation failed (which MIGHT be caused by breakage of apt package in Ubuntu 13.10")
             #pm_utils.remove_packages(["postgresql", "postgresql-common"], package_manager="apt-get", skip_apt_update=skip_apt_update) 
             #postgresql_deb_path = os.path.join(tmp_dir, postgresql_deb_name)
             #if not check_file(postgresql_deb_path, postgresql_deb_md5):
@@ -121,4 +142,3 @@ def install_postgresql(skip_apt_update, pg_version=(9,2),):
 
 if __name__ == "__main__":
     plac.call(install_prequisites)
-
