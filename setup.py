@@ -46,6 +46,7 @@ setup(
     # metadata for upload to PyPI
     author = "Karl-Philipp Richter",
     author_email = "krichter722@aol.de",
+    url='https://github.com/krichter722/python-essentials',
     description = "Basic python scripts and a wrapper around osm2pqsql which incorporates database creation and associated modularized library functions",
     license = "GPLv3",
     keywords = "OSM postgresql osm2pgsql",
