@@ -41,12 +41,11 @@ import os
 import sys
 import tempfile
 import re
+import augeas
 
-# project internal dependencies
-import python_essentials
-import python_essentials.lib
-import python_essentials.lib.check_os as check_os
-import python_essentials.lib.file_line_utils as file_line_utils
+# project internal dependencies (`import python_essentials; import python_essentials.lib; import python_essentials.lib.check_os as check_os` fails at `import python_essentials.lib`; it's not necessary to import like that because package structure enforces that the imported scripts are siblings and can always be imported)
+import check_os
+import file_line_utils
 
 # indicates whether apt is up to date, i.e. whether `apt-get update` has been invoked already
 aptuptodate = False
@@ -72,12 +71,15 @@ PACKAGE_MANAGER_APT_GET="apt-get"
 ##############################
 # @return <code>True</code> if <tt>package_name</tt> is installed, <code>False</code> otherwise
 def dpkg_check_package_installed(package_name):
-    # old implementation relying on dpkg return codes (reported https://bugs.launchpad.net/ubuntu/+source/dpkg/+bug/1380326 for clearification of them) (more elegant, but in Ubuntu 14.10-beta1 return code is 0 for both installed and uninstalled packages)
-    #return_code = sp.call(["dpkg", "-s", package_name], stdout=sp.PIPE, stderr=sp.PIPE)
-    #return return_code == 0
-    
-    dpkg_output = sp.check_output(["dpkg", "-s", package_name])
-    ret_value = "Package: %s\nStatus: install ok installed" % (package_name,) in dpkg_output
+    # old implementation relying on dpkg return codes (reported https://bugs.launchpad.net/ubuntu/+source/dpkg/+bug/1380326 for clearification of them) (more elegant, but in Ubuntu 14.10-beta1 return code is 0 for both installed and uninstalled packages; working dpkg of version 1.17.13ubuntu1 in Ubuntu 14.10 is the same like in Ubuntu 14.10-beta1 -> assume unexplainable anomaly, abstract implementation and make it possible to choose between returncode and output based implementation (not too elegant, but intuitive))
+    def __dpkg_check_package_installed_returncode__():
+        return_code = sp.call(["dpkg", "-s", package_name], stdout=sp.PIPE, stderr=sp.PIPE)
+        return return_code == 0
+    def __dpkg_check_package_installed_output__():
+        dpkg_output = sp.check_output(["dpkg", "-s", package_name])
+        ret_value = "Package: %s\nStatus: install ok installed" % (package_name,) in dpkg_output
+        return ret_value
+    ret_value = __dpkg_check_package_installed_returncode__()
     return ret_value
 
 ##############################
@@ -280,3 +282,4 @@ def add_apt_source_line(uri, component, distribution, the_type, augeas_root="/",
     a.set("/files/etc/apt/sources.list/01/component", component)
     a.save()
     a.close()
+

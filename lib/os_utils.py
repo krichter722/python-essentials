@@ -27,6 +27,10 @@
 #    Sie sollten eine Kopie der GNU General Public License zusammen mit diesem
 #    Programm erhalten haben. Wenn nicht, siehe <http://www.gnu.org/licenses/>.
 
+# manages functions involving all sorts of runtime environments (not only 
+# operating systems, like the name suggests, but also script language 
+# interpreters)
+
 import os
 import sys
 import check_os
@@ -47,4 +51,21 @@ def hostname():
         return sp.check_output(["hostname"]).strip().decode("utf-8")
     else:
         raise RuntimeError("operating system not supported")
+
+CHECK_JAVA_NOT_SET = 1
+CHECK_JAVA_INVALID = 2
+
+# checks that the `JAVA_HOME` environment variable is set, non-empty and points 
+# to a valid Java JDK
+# @return `None` if the `JAVA_HOME` variable points to a valid Java JDK`, 
+# `CHECK_JAVA_NOT_SET` if `JAVA_HOME` isn't set or empty or 
+# `CHECK_JAVA_INVALID` if `JAVA_HOME` doesn't point to a valid Java JDK
+def check_java_valid(java_home=os.getenv("JAVA_HOME")):
+    if java_home is None or java_home == "":
+        return CHECK_JAVA_NOT_SET
+    if not os.path.exists(java_home):
+        return CHECK_JAVA_INVALID
+    java_binary = os.path.join(java_home, "bin/java")
+    if not os.path.exists(java_binary):
+        return CHECK_JAVA_INVALID
 

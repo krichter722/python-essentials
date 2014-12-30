@@ -39,6 +39,7 @@ setup(
     packages = [python_essentials_globals.app_name, "%s.lib" % (python_essentials_globals.app_name, ), ], # no idea why setuptools.find_packages() doesn't work
     package_dir = {
         python_essentials_globals.app_name: '', 
+        "%s.lib" % (python_essentials_globals.app_name, ): 'lib', 
     },
     install_requires = "plac >= 0.9.1", 
 
