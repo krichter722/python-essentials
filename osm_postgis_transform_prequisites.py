@@ -31,9 +31,8 @@
 import sys
 import os
 import subprocess as sp
-import string
-sys.path.append(os.path.realpath(os.path.join(__file__, "..", 'lib')))
 import logging
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
@@ -41,10 +40,12 @@ ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
 # project internal dependencies
-import pm_utils
-import check_os
-import postgis_utils
-import os_utils
+import python_essentials
+import python_essentials.lib
+import python_essentials.lib.pm_utils as pm_utils
+import python_essentials.lib.check_os as check_os
+import python_essentials.lib.postgis_utils as postgis_utils
+import python_essentials.lib.os_utils as os_utils
 
 # external dependencies
 import plac
@@ -104,7 +105,7 @@ def install_postgresql(skip_apt_update, pg_version=(9,2),):
                 postgresql_sources_file.close()
                 os.system("wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -")
                 pm_utils.invalidate_apt()
-        pg_version_string = string.join([str(x) for x in pg_version],".")
+        pg_version_string = str.join(".", [str(x) for x in pg_version])
         try:
             pm_utils.install_packages([ 
                 "postgresql-%s" % pg_version_string, 
@@ -135,7 +136,7 @@ def install_postgresql(skip_apt_update, pg_version=(9,2),):
             postgres = "/usr/lib/postgresql92/bin/postgres"
         else:
             # better to let the script fail here than to get some less comprehensive error message later
-            raise RuntimeError("postgresql version %s not supported" % string.join([str(x) for x in pg_version],"."))
+            raise RuntimeError("postgresql version %s not supported" % str.join(".", [str(x) for x in pg_version]))
     else:
         # better to let the script fail here than to get some less comprehensive error message later
         raise RuntimeError("operating system not supported!")

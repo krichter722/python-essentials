@@ -27,21 +27,25 @@
 #    Sie sollten eine Kopie der GNU General Public License zusammen mit diesem
 #    Programm erhalten haben. Wenn nicht, siehe <http://www.gnu.org/licenses/>.
 
-# The file provides programmatic default values as python constants. It isn't 
-# necessary to read the values from a config file which is maintained in the 
-# sources tree, but this way we have a default config file without any further 
-# efforts
-
-import ConfigParser
+from setuptools import setup, find_packages
+import sys
 import os
+sys.path.append(os.path.realpath(os.path.join(__file__, "..", "lib")))
+import python_essentials_globals
 
-app_name = "python_essentials"
-app_version = (1, 0)
-app_version_string = str.join(".", [str(x) for x in app_version])
+setup(
+    name = python_essentials_globals.app_name,
+    version = python_essentials_globals.app_version_string,
+    packages = [python_essentials_globals.app_name, "%s.lib" % (python_essentials_globals.app_name, ), ], # no idea why setuptools.find_packages() doesn't work
+    package_dir = {
+        python_essentials_globals.app_name: '', 
+    },
 
-config = ConfigParser.ConfigParser()
-defaults_config_file_path = os.path.join(os.path.realpath(__file__), "..", "python-essentials.cfg")
-config.read(defaults_config_file_path)
-osm_postgis_dir_path = os.path.join(os.environ["HOME"], "osm_postgis_db-9.2") # config.get("pathes", "osm_postgis_dir_path")
-osm_postgis_version = (9,2) # config.get("versions", "osm_postgis_version")
+    # metadata for upload to PyPI
+    author = "Karl-Philipp Richter",
+    author_email = "krichter722@aol.de",
+    description = "Basic python scripts and a wrapper around osm2pqsql which incorporates database creation and associated modularized library functions",
+    license = "GPLv3",
+    keywords = "OSM postgresql osm2pgsql",
+)
 

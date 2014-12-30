@@ -41,14 +41,12 @@ import os
 import sys
 import tempfile
 import re
-sys.path.append(os.path.realpath(os.path.join(__file__, "..", 'lib')))
-import check_os
-import file_line_utils
-import string
-try:
-    import mount_sources_image
-except ImportError:
-    logger.error("import of module 'mount_sources_image' failed, did you add the required path to the PYTHONPATH variable?")
+
+# project internal dependencies
+import python_essentials
+import python_essentials.lib
+import python_essentials.lib.check_os as check_os
+import python_essentials.lib.file_line_utils as file_line_utils
 
 # indicates whether apt is up to date, i.e. whether `apt-get update` has been invoked already
 aptuptodate = False

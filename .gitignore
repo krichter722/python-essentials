@@ -1,2 +1,7 @@
 # binary and object files
 *.pyc
+
+# setuptools build directories
+build/
+dist/
+python_essentials.egg-info/

@@ -41,18 +41,17 @@ logger.addHandler(ch)
 import subprocess as sp
 import os
 import time
-import string
 import argparse
 import sys
 import shutil
 
 # project internal dependencies
-sys.path.append(os.path.realpath(os.path.join(__file__, "..", 'lib')))
-import pm_utils
-import check_os
-import postgis_utils
-import os_utils
 import python_essentials
+import python_essentials.lib
+import python_essentials.lib.pm_utils as pm_utils
+import python_essentials.lib.check_os as check_os
+import python_essentials.lib.postgis_utils as postgis_utils
+import python_essentials.lib.os_utils as os_utils
 
 # external dependencies
 try:
@@ -153,7 +152,7 @@ def osm_postgis_transform(osm_files, skip_start_db, data_dir=data_dir_default, d
                 logger.info("sleeping %s s to ensure postgres server started" % postgres_server_start_timeout)
                 time.sleep(postgres_server_start_timeout) # not nice (should poll connection until success instead)
         logger.debug("using osm2pgsql binary %s" % osm2pgsql)
-        osm2pgsql_proc = pexpect.spawn(string.join([osm2pgsql, "--create", "--database", db_name, "--cache", str(cache_size), "--number-processes", str(osm2pgsql_number_processes), "--slim", "--port", str(db_port), "--host", db_host, "--username", db_user, "--latlong", "--password", "--keep-coastlines", "--extra-attributes", "--hstore-all"]+osm_files, " "))
+        osm2pgsql_proc = pexpect.spawn(str.join(" ", [osm2pgsql, "--create", "--database", db_name, "--cache", str(cache_size), "--number-processes", str(osm2pgsql_number_processes), "--slim", "--port", str(db_port), "--host", db_host, "--username", db_user, "--latlong", "--password", "--keep-coastlines", "--extra-attributes", "--hstore-all"]+osm_files))
         osm2pgsql_proc.logfile = sys.stdout
         osm2pgsql_proc.expect(['Password:', "Passwort:"])
         osm2pgsql_proc.sendline(db_password)
