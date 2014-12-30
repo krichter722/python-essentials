@@ -40,6 +40,7 @@ setup(
     package_dir = {
         python_essentials_globals.app_name: '', 
     },
+    install_requires = "plac >= 0.9.1", 
 
     # metadata for upload to PyPI
     author = "Karl-Philipp Richter",
