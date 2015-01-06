@@ -36,8 +36,8 @@ import sys
 import check_os
 import subprocess as sp
 
-# replacement for python3's shutil.which
 def which(pgm):
+    """replacement for python3's shutil.which"""
     if os.path.exists(pgm) and os.access(pgm,os.X_OK):
         return pgm
     path=os.getenv('PATH')
@@ -55,12 +55,9 @@ def hostname():
 CHECK_JAVA_NOT_SET = 1
 CHECK_JAVA_INVALID = 2
 
-# checks that the `JAVA_HOME` environment variable is set, non-empty and points 
-# to a valid Java JDK
-# @return `None` if the `JAVA_HOME` variable points to a valid Java JDK`, 
-# `CHECK_JAVA_NOT_SET` if `JAVA_HOME` isn't set or empty or 
-# `CHECK_JAVA_INVALID` if `JAVA_HOME` doesn't point to a valid Java JDK
 def check_java_valid(java_home=os.getenv("JAVA_HOME")):
+    """checks that the `JAVA_HOME` environment variable is set, non-empty and points to a valid Java JDK
+    @return `None` if the `JAVA_HOME` variable points to a valid Java JDK`, `CHECK_JAVA_NOT_SET` if `JAVA_HOME` isn't set or empty or `CHECK_JAVA_INVALID` if `JAVA_HOME` doesn't point to a valid Java JDK"""
     if java_home is None or java_home == "":
         return CHECK_JAVA_NOT_SET
     if not os.path.exists(java_home):
