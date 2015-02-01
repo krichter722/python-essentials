@@ -147,7 +147,7 @@ def check_mounted(source, target):
     return False
 
 def lazy_mount(source, target, fs_type, options_str=None):
-    """Checks if `source` is already mounted under `target` and skips (if it is) or mounts `source` under `target` otherwise."""
+    """Checks if `source` is already mounted under `target` and skips (if it is) or mounts `source` under `target` otherwise as type `fs_type`. Due to the fact that the type can be omitted for certain invokations of `mount` (e.g. `mount --bind`), this function allows `fs_type` to be `None` which means no type will be specified."""
     if check_mounted(source, target):
         return
     if not os.path.exists(target):
@@ -155,7 +155,9 @@ def lazy_mount(source, target, fs_type, options_str=None):
             os.mknod(target, 755)
         else:
             os.makedirs(target)
-    cmds = [mount, "-t", fs_type,]
+    cmds = [mount]
+    if fs_type != None and fs_type != "":
+    	cmds += ["-t", fs_type,]
     if not options_str is None and options_str != "":
         cmds += ["-o", options_str]
     cmds += [ source, target]
