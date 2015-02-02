@@ -36,7 +36,7 @@ import ConfigParser
 import os
 
 app_name = "python_essentials"
-app_version = (1, 1, 1)
+app_version = (1, 1, 2)
 app_version_string = str.join(".", [str(x) for x in app_version])
 
 config = ConfigParser.ConfigParser()
