@@ -152,7 +152,7 @@ def lazy_mount(source, target, fs_type, options_str=None):
         return
     if not os.path.exists(target):
         if os.path.isfile(source):
-            os.mknod(target, 755)
+            os.mknod(target, 0755)
         else:
             os.makedirs(target)
     cmds = [mount]
