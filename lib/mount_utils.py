@@ -44,7 +44,7 @@ import file_line_utils
 import pm_utils
 
 # binaries
-mount = "mount"
+mount_default = "mount"
 bash = "dash"
 ifconfig = "ifconfig"
 losetup = "losetup"
@@ -62,10 +62,10 @@ MOUNT_MODE_NFS = 1
 MOUNT_MODE_CIFS = 2
 mount_mode_default = MOUNT_MODE_CIFS
 
-def mount_dsm_sparse_file(shared_folder_name, image_mount_target, network_mount_target, image_file_name, remote_host, username, uid=1000, gid=1000, mount_mode=mount_mode_default, credentials_file=None):
+def mount_dsm_sparse_file(shared_folder_name, image_mount_target, network_mount_target, image_file_name, remote_host, username, uid=1000, gid=1000, mount_mode=mount_mode_default, credentials_file=None, mount=mount_default):
     """a wrapper around `mount_sparse_file` and different remote mount methods (NFS, cifs, etc.) (sparse file support is horrible for all of them...). It has been written to deal with Synology DSM 5.0 (path specifications, etc.). `credentials_file` can be used of the `credentials` option of `mount.cifs` will be passed to the `mount` command, if `None` the `username` option with value will be passed to the `mount` command which will request the password from input at a prompt. `uid` and `gid` are values for options of `mount.cifs` (which default to Ubuntu defaults for the first user)."""
     if mount_mode == MOUNT_MODE_NFS:
-        lazy_mount(source="%s:/volume1/%s" % (remote_host, shared_folder_name), target=network_mount_target, fs_type="nfs", options_str="nfsvers=4") 
+        lazy_mount(source="%s:/volume1/%s" % (remote_host, shared_folder_name), target=network_mount_target, fs_type="nfs", options_str="nfsvers=4", mount=mount) 
                 # handles inexistant target
                 # omitting nfsvers=4 causes 'mount.nfs: requested NFS version or transport protocol is not supported' (not clear with which protocol this non-sense error message refers to)
     elif mount_mode == MOUNT_MODE_CIFS:
@@ -75,13 +75,14 @@ def mount_dsm_sparse_file(shared_folder_name, image_mount_target, network_mount_
             if not os.path.exists(credentials_file):
                 raise ValueError("credentials_file '%s' doesn't exist" % (credentials_file,))
             options_str="credentials=%s,rw,uid=%d,gid=%d" % (credentials_file, uid, gid, )
-        lazy_mount(source="//%s/%s" % (remote_host, shared_folder_name), target=network_mount_target, fs_type="cifs", options_str=options_str) # handles inexistant target
+        lazy_mount(source="//%s/%s" % (remote_host, shared_folder_name), target=network_mount_target, fs_type="cifs", options_str=options_str, mount=mount) # handles inexistant target
     else:
         raise ValueError("mount_mode '%s' not supported" % (mount_mode,))
     mount_sparse_file(
         image_file=os.path.join(network_mount_target, image_file_name), 
         image_mount_target=image_mount_target, 
-        image_mode=IMAGE_MODE_FS
+        image_mode=IMAGE_MODE_FS,
+        mount=mount
     )
 
 def mount_prequisites(skip_apt_update=skip_apt_update_default):
@@ -95,15 +96,15 @@ def mount_prequisites(skip_apt_update=skip_apt_update_default):
         installed = True
     return installed
 
-def mount_sparse_file(image_file, image_mount_target, image_mode=IMAGE_MODE_FS):
+def mount_sparse_file(image_file, image_mount_target, image_mode=IMAGE_MODE_FS, mount=mount_default):
     """Handles mounting `image_file` at `image_mount_target` according to `image_mode` which determines the remote filesystem to use."""
     image_file_loop_dev = losetup_wrapper(image_file)
     if image_mode == IMAGE_MODE_PT:
         sp.check_call([partprobe, image_file_loop_dev])
-        lazy_mount("%sp1" % image_file_loop_dev, image_mount_target, "btrfs")
+        lazy_mount("%sp1" % image_file_loop_dev, image_mount_target, "btrfs", mount=mount)
         sp.check_call([btrfs, "device", "scan", "%sp1" % image_file_loop_dev]) # scan fails if an image with a partition table is mounted at the loop device -> scan partitions 
     elif image_mode == IMAGE_MODE_FS:
-        lazy_mount(image_file_loop_dev, image_mount_target, "btrfs")
+        lazy_mount(image_file_loop_dev, image_mount_target, "btrfs", mount=mount)
         sp.check_call([btrfs, "device", "scan", image_file_loop_dev]) # do this always as it doesn't fail if not btrfs image 
         # has been mounted and doesn't take a lot of time -> no need to add 
         # a parameter to distungish between btrfs and others (would be more 
@@ -146,7 +147,7 @@ def check_mounted(source, target):
             return True
     return False
 
-def lazy_mount(source, target, fs_type, options_str=None):
+def lazy_mount(source, target, fs_type, options_str=None, mount=mount_default):
     """Checks if `source` is already mounted under `target` and skips (if it is) or mounts `source` under `target` otherwise as type `fs_type`. Due to the fact that the type can be omitted for certain invokations of `mount` (e.g. `mount --bind`), this function allows `fs_type` to be `None` which means no type will be specified."""
     if check_mounted(source, target):
         return
