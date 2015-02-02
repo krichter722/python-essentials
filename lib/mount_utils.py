@@ -123,9 +123,9 @@ def losetup_wrapper(file):
     sp.check_call([losetup, loop_dev, file])
     return loop_dev
 
-def check_mounted(source, target):
+def check_mounted(source, target, mount=mount_default):
     """Checks whether `source` is mounted under `target` and `True` if and only if that's the case - and `False` otherwise."""
-    mount_lines = open("/proc/mounts", "r").readlines()
+    mount_lines = sp.check_output([mount]) # open("/proc/mounts", "r").readlines() is not compatible with FreeBSD
     for mount_line in mount_lines:
         mount_line_split = mount_line.split(" ")
         target0 = mount_line_split[1]
@@ -135,7 +135,7 @@ def check_mounted(source, target):
 
 def lazy_mount(source, target, fs_type, options_str=None, mount=mount_default):
     """Checks if `source` is already mounted under `target` and skips (if it is) or mounts `source` under `target` otherwise as type `fs_type`. Due to the fact that the type can be omitted for certain invokations of `mount` (e.g. `mount --bind`), this function allows `fs_type` to be `None` which means no type will be specified."""
-    if check_mounted(source, target):
+    if check_mounted(source, target, mount=mount):
         return
     if not os.path.exists(target):
         if os.path.isfile(source):
