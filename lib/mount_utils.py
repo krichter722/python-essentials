@@ -41,7 +41,6 @@ ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
 import file_line_utils
-import pm_utils
 
 # binaries
 mount_default = "mount"
@@ -55,8 +54,6 @@ umount = "umount"
 IMAGE_MODE_PT="partition-table"
 IMAGE_MODE_FS="file-system"
 image_modes = [IMAGE_MODE_PT, IMAGE_MODE_FS]
-
-skip_apt_update_default = False
 
 MOUNT_MODE_NFS = 1
 MOUNT_MODE_CIFS = 2
@@ -84,17 +81,6 @@ def mount_dsm_sparse_file(shared_folder_name, image_mount_target, network_mount_
         image_mode=IMAGE_MODE_FS,
         mount=mount
     )
-
-def mount_prequisites(skip_apt_update=skip_apt_update_default):
-    """Checks whether necessary packages for mounting have been installed and installs them if necessary using `pm_utils.install_packages`. Returns `True` if packages were installed and `False`otherwise."""
-    installed = False
-    if not pm_utils.dpkg_check_package_installed("nfs-common"):
-        pm_utils.install_packages(["nfs-common"], skip_apt_update=skip_apt_update)
-        installed = True
-    if not pm_utils.dpkg_check_package_installed("cifs-utils"):
-        pm_utils.install_packages(["cifs-utils"], skip_apt_update=skip_apt_update)
-        installed = True
-    return installed
 
 def mount_sparse_file(image_file, image_mount_target, image_mode=IMAGE_MODE_FS, mount=mount_default):
     """Handles mounting `image_file` at `image_mount_target` according to `image_mode` which determines the remote filesystem to use."""
