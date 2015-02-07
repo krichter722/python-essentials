@@ -40,7 +40,9 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
-import file_line_utils
+import python_essentials
+import python_essentials.lib
+import python_essentials.lib.file_line_utils as file_line_utils
 
 # binaries
 mount_default = "mount"
@@ -117,7 +119,7 @@ def get_mount_source(mount_target):
 def losetup_wrapper(file):
     """A wrapper around finding the next free loop device with `losetup` and associating `file` with it with one function call. Returns the found loop device `file` has been associated to."""
     try:
-        loop_dev = sp.check_output([losetup, "-f"]).strip()
+        loop_dev = sp.check_output([losetup, "-f"]).decode("utf-8").strip()
     except sp.CalledProcessError as ex:
         raise RuntimeError("no free loop device")
     sp.check_call([losetup, loop_dev, file])
@@ -125,7 +127,7 @@ def losetup_wrapper(file):
 
 def check_mounted(source, target, mount=mount_default):
     """Checks whether `source` is mounted under `target` and `True` if and only if that's the case - and `False` otherwise."""
-    mount_lines = sp.check_output([mount]) # open("/proc/mounts", "r").readlines() is not compatible with FreeBSD
+    mount_lines = sp.check_output([mount]).decode("utf-8").strip().split("\n") # open("/proc/mounts", "r").readlines() is not compatible with FreeBSD
     for mount_line in mount_lines:
         mount_line_split = mount_line.split(" ")
         target0 = mount_line_split[1]
@@ -134,12 +136,12 @@ def check_mounted(source, target, mount=mount_default):
     return False
 
 def lazy_mount(source, target, fs_type, options_str=None, mount=mount_default):
-    """Checks if `source` is already mounted under `target` and skips (if it is) or mounts `source` under `target` otherwise as type `fs_type`. Due to the fact that the type can be omitted for certain invokations of `mount` (e.g. `mount --bind`), this function allows `fs_type` to be `None` which means no type will be specified."""
+    """Checks if `source` is already mounted under `target` and skips (if it is) or mounts `source` under `target` otherwise as type `fs_type`. Due to the fact that the type can be omitted for certain invokations of `mount` (e.g. `mount --bind`), this function allows `fs_type` to be `None` which means no type will be specified. Uses `mount` as binary for the mount command."""
     if check_mounted(source, target, mount=mount):
         return
-    if not os.path.exists(target):
+    if not os.path.lexists(target):
         if os.path.isfile(source):
-            os.mknod(target, 0755)
+            os.mknod(target, mode=0o0755)
         else:
             os.makedirs(target)
     cmds = [mount]

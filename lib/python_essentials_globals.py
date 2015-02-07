@@ -32,14 +32,19 @@
 # sources tree, but this way we have a default config file without any further 
 # efforts
 
-import ConfigParser
 import os
+import check_os
 
 app_name = "python_essentials"
 app_version = (1, 1, 3)
 app_version_string = str.join(".", [str(x) for x in app_version])
 
-config = ConfigParser.ConfigParser()
+if check_os.check_python3():
+    import configparser
+    config = configparser.ConfigParser()
+else:
+    import ConfigParser
+    config = ConfigParser.ConfigParser()
 defaults_config_file_path = os.path.join(os.path.realpath(__file__), "..", "python-essentials.cfg")
 config.read(defaults_config_file_path)
 osm_postgis_dir_path = os.path.join(os.environ["HOME"], "osm_postgis_db-9.2") # config.get("pathes", "osm_postgis_dir_path")
