@@ -40,9 +40,7 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
-import python_essentials
-import python_essentials.lib
-import python_essentials.lib.file_line_utils as file_line_utils
+import file_line_utils
 
 # binaries
 mount_default = "mount"
