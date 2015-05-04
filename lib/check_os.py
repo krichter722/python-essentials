@@ -31,6 +31,7 @@ import subprocess as sp
 import re
 import os
 import sys
+import platform
 
 # constants
 ARCHITECTURE_X86_64 = "x86_64"
@@ -85,6 +86,9 @@ def check_linuxmint():
         return ret_value
     except Exception:
         return False
+
+def check_freebsd():
+    return platform.system() == "FreeBSD"
 
 def check_root():
     uid = sp.check_output(["id","-u"]).strip()
