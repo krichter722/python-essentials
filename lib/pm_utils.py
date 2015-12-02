@@ -168,13 +168,13 @@ def __package_manager_action__(packages, package_manager, package_manager_action
         aptupdate(skip_apt_update)
         command_list = [apt_get]
         options_command_list = __generate_apt_options_command_list__(assume_yes=assume_yes, install_recommends=install_recommends, install_suggests=install_suggests)
-        sp.check_call(command_list+options_command_list+package_manager_action+packages)
+        sp.check_call(command_list+options_command_list+package_manager_action+packages, preexec_fn=preexec_fn)
     elif package_manager == "yast2":
-        sp.check_call(["/sbin/yast2", "--"+package_manager_action]+packages) # yast2 doesn't accept string concatenation of packages with blank, but the passed list (it's acutually better style...)
+        sp.check_call(["/sbin/yast2", "--"+package_manager_action]+packages, preexec_fn=preexec_fn) # yast2 doesn't accept string concatenation of packages with blank, but the passed list (it's acutually better style...)
     elif package_manager == "zypper":
-        sp.check_call(["zypper", package_manager_action]+packages)
+        sp.check_call(["zypper", package_manager_action]+packages, preexec_fn=preexec_fn)
     elif package_manager == "equo":
-        sp.check_call(["equo", package_manager_action]+packages)
+        sp.check_call(["equo", package_manager_action]+packages, preexec_fn=preexec_fn)
     else:
         raise ValueError(str(package_manager)+" is not a supported package manager")
 # implementation notes:
