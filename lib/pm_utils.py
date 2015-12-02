@@ -128,19 +128,19 @@ def check_packages_installed(packages, package_manager="apt-get", skip_apt_updat
 
 # quiet flag doesn't make sense because update can't be performed quietly obviously (maybe consider to switch to apt-api)
 # return apt-get return code or <code>0</code> if <tt>packages</tt> are already installed or <tt>packages</tt> is empty
-def install_packages(packages, package_manager="apt-get", assume_yes=assume_yes_default, skip_apt_update=skip_apt_update_default, install_recommends=install_recommends_default, install_suggests=install_suggests_default):
+def install_packages(packages, package_manager="apt-get", assume_yes=assume_yes_default, skip_apt_update=skip_apt_update_default, install_recommends=install_recommends_default, install_suggests=install_suggests_default, preexec_fn=None):
     if check_packages_installed(packages, package_manager, skip_apt_update=skip_apt_update):
         return 0
-    return __package_manager_action__(packages, package_manager, ["install"], assume_yes, skip_apt_update=skip_apt_update, install_recommends=install_recommends, install_suggests=install_suggests)
+    return __package_manager_action__(packages, package_manager, ["install"], assume_yes, skip_apt_update=skip_apt_update, install_recommends=install_recommends, install_suggests=install_suggests, preexec_fn=preexec_fn)
 
 # doesn't check whether packages are installed
 # @return apt-get return code or <code>0</code> if <tt>packages</tt> is empty
-def reinstall_packages(packages, package_manager="apt-get", assume_yes=assume_yes_default, skip_apt_update=skip_apt_update_default, stdout=None):
-    return __package_manager_action__(packages, package_manager, ["--reinstall", "install"], assume_yes, skip_apt_update=skip_apt_update,stdout=None)
+def reinstall_packages(packages, package_manager="apt-get", assume_yes=assume_yes_default, skip_apt_update=skip_apt_update_default, stdout=None, preexec_fn=None):
+    return __package_manager_action__(packages, package_manager, ["--reinstall", "install"], assume_yes, skip_apt_update=skip_apt_update,stdout=None, preexec_fn=preexec_fn)
 
 # @return apt-get return code oder <code>0</code> if none in <tt>packages</tt> is installed or <tt>packages</tt> is empty
-def remove_packages(packages, package_manager="apt-get", assume_yes=assume_yes_default, skip_apt_update=skip_apt_update_default):
-    return __package_manager_action__(packages, package_manager, ["remove"], assume_yes, skip_apt_update=skip_apt_update)
+def remove_packages(packages, package_manager="apt-get", assume_yes=assume_yes_default, skip_apt_update=skip_apt_update_default, preexec_fn=None):
+    return __package_manager_action__(packages, package_manager, ["remove"], assume_yes, skip_apt_update=skip_apt_update, preexec_fn=preexec_fn)
 
 def __generate_apt_options_command_list__(assume_yes=assume_yes_default, install_recommends=install_recommends_default, install_suggests=install_suggests_default):
     # apt-get installs recommended packages by default, therefore the 
@@ -155,9 +155,11 @@ def __generate_apt_options_command_list__(assume_yes=assume_yes_default, install
         command_list.append("--assume-yes")
     return command_list
 
-# quiet flag doesn't make sense because update can't be performed quietly obviously (maybe consider to switch to apt-api)
-# @args a list of command to be inserted after the package manager command and default options and before the package list
-def __package_manager_action__(packages, package_manager, package_manager_action, assume_yes, skip_apt_update=skip_apt_update_default, stdout=None, install_recommends=install_recommends_default, install_suggests=install_suggests_default):
+def __package_manager_action__(packages, package_manager, package_manager_action, assume_yes, skip_apt_update=skip_apt_update_default, stdout=None, install_recommends=install_recommends_default, install_suggests=install_suggests_default, preexec_fn=None):
+    """quiet flag doesn't make sense because update can't be performed quietly obviously (maybe consider to switch to apt-api)
+    @args packages a list of command to be inserted after the package manager command and default options and before the package list
+    @args preexec_fn a function to be passed to the `preexec_fn` argument of `subprocess.Popen`
+    """
     if not "<type 'list'>" == str(type(packages)) and str(type(packages)) != "<class 'list'>":
         raise ValueError("packages isn't a list")
     if len(packages) == 0:
