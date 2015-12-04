@@ -178,7 +178,7 @@ def __package_manager_action__(packages, package_manager, package_manager_action
     else:
         raise ValueError(str(package_manager)+" is not a supported package manager")
 # implementation notes:
-# - changed from return value to void because exceptions can be catched more elegant with sp.check_call
+# - don't return catched exceptions, but just throw them (that's what exceptions are for)
 # - not a good idea to redirect output of subcommand other than update to file because interaction (e.g. choosing default display manager, comparing config file versions) is useful and necessary and suppressed when redirecting to file
 # - checking availability of apt lock programmatically causes incompatibility with invokation without root privileges -> removed
 
