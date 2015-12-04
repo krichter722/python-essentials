@@ -34,12 +34,12 @@ sys.path.append(os.path.realpath(os.path.join(__file__, "..", "lib")))
 import python_essentials_globals
 
 setup(
-    name = python_essentials_globals.app_name,
-    version = python_essentials_globals.app_version_string,
-    packages = [python_essentials_globals.app_name, "%s.lib" % (python_essentials_globals.app_name, ), ], # no idea why setuptools.find_packages() doesn't work
+    name = "python-essentials",
+    version_command=("git describe --tags", "pep440-git-local"),
+    packages = ["python_essentials", "python_essentials.lib", ],
     package_dir = {
-        python_essentials_globals.app_name: '', 
-        "%s.lib" % (python_essentials_globals.app_name, ): 'lib', 
+        "python_essentials": '',
+        "python_essentials.lib": 'lib',
     },
     install_requires = "plac >= 0.9.1", 
 

@@ -35,10 +35,6 @@
 import os
 import check_os
 
-app_name = "python_essentials"
-app_version = (1, 1, 6)
-app_version_string = str.join(".", [str(x) for x in app_version])
-
 if check_os.check_python3():
     import configparser
     config = configparser.ConfigParser()
