@@ -33,16 +33,6 @@
 # efforts
 
 import os
-import check_os
 
-if check_os.check_python3():
-    import configparser
-    config = configparser.ConfigParser()
-else:
-    import ConfigParser
-    config = ConfigParser.ConfigParser()
-defaults_config_file_path = os.path.join(os.path.realpath(__file__), "..", "python-essentials.cfg")
-config.read(defaults_config_file_path)
-osm_postgis_dir_path = os.path.join(os.environ["HOME"], "osm_postgis_db-9.2") # config.get("pathes", "osm_postgis_dir_path")
-osm_postgis_version = (9,2) # config.get("versions", "osm_postgis_version")
-
+osm_postgis_dir_path = os.path.join(os.environ["HOME"], "osm_postgis_db-9.2")
+osm_postgis_version = (9,2)

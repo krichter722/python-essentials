@@ -30,17 +30,13 @@
 from setuptools import setup, find_packages
 import sys
 import os
-sys.path.append(os.path.realpath(os.path.join(__file__, "..", "lib")))
 import python_essentials_globals
 
 setup(
     name = "python-essentials",
     version_command=("git describe --tags", "pep440-git-local"),
-    packages = ["python_essentials", "python_essentials.lib", ],
-    package_dir = {
-        "python_essentials": '',
-        "python_essentials.lib": 'lib',
-    },
+    packages = find_packages(),
+    setup_requires = ["setuptools-version-command>=2.2"],
     install_requires = "plac >= 0.9.1", 
 
     # metadata for upload to PyPI
