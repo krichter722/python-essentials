@@ -34,7 +34,7 @@ import python_essentials_globals
 
 setup(
     name = "python-essentials",
-    version_command=("git describe --tags", "pep440-git-local"),
+    version_command=("git describe --tags", "pep440-git"),
     packages = find_packages(),
     setup_requires = ["setuptools-version-command>=2.2"],
     install_requires = "plac >= 0.9.1", 
