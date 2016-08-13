@@ -30,11 +30,12 @@
 from setuptools import setup, find_packages
 import sys
 import os
-import python_essentials_globals
+sys.path.append("python_essentials")
+import python_essentials.python_essentials_globals as python_essentials_globals
 
 setup(
     name = "python-essentials",
-    version_command=("git describe --tags", "pep440-git"),
+    version_command=("git describe --tags", "pep440-git-local"),
     packages = find_packages(),
     setup_requires = ["setuptools-version-command>=2.2"],
     install_requires = "plac >= 0.9.1", 
